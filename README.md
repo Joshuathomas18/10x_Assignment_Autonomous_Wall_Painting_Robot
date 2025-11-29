@@ -20,13 +20,13 @@ To achieve a robust industrial-grade path, I iterated through three distinct alg
 * **Approach:** Started with a simple double `for` loop iterating rows and columns.
 * **The Failure:** Lacked spatial awareness. If an obstacle blocked a row, the path "teleported" across the obstacle, creating physically impossible moves.
 
-![Description of Image](images/Screenshot 2025-11-28 165753.png)
+![Description of Image](images/phase1.png)
 
 ### Phase 2: Greedy Search (The "Spiral Trap")
 * **Approach:** Switched to a graph-based traversal where the robot moved to the nearest unvisited neighbor.
 * **The Failure:** The robot would hug the obstacle walls, spiraling inward until it trapped itself in a corner (local minimum).
 
-![Description of Image](path/to/image.png)
+![Description of Image](phase2.png)
 
 ### Phase 3: Segment-Based Decomposition (The Final Solution)
 * **Approach:** Implemented a **Segment-Based** approach:
@@ -35,7 +35,7 @@ To achieve a robust industrial-grade path, I iterated through three distinct alg
     3.  Use **BFS (Breadth-First Search)** to intelligently navigate around obstacles when switching zones.
 * **Result:** A clean, predictable path with zero overlaps and zero spirals.
 
-![Description of Image](path/to/image.png)
+![Description of Image](images/phase3.png)
 
 
 ## 3. System Architecture & "Overkill" Optimizations
