@@ -20,7 +20,7 @@ To achieve a robust industrial-grade path, I iterated through three distinct alg
 * **Approach:** Started with a simple double `for` loop iterating rows and columns.
 * **The Failure:** Lacked spatial awareness. If an obstacle blocked a row, the path "teleported" across the obstacle, creating physically impossible moves.
 
-![Description of Image](path/to/image.png)
+![Description of Image](images/Screenshot 2025-11-28 165753.png)
 
 ### Phase 2: Greedy Search (The "Spiral Trap")
 * **Approach:** Switched to a graph-based traversal where the robot moved to the nearest unvisited neighbor.
