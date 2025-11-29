@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Robot Planner</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        canvas { border: 2px solid #333; margin-top: 10px; background: #f0f0f0; }
+        .inputs { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="inputs">
+        Wall Size: <input id="w" value="5" size="2"> x <input id="h" value="5" size="2">
+        | Obstacle: <input id="ox" value="2" size="2">,<input id="oy" value="2" size="2"> 
+        Size: <input id="ow" value="1" size="2"> x <input id="oh" value="1" size="2">
+        <button onclick="run()">Run Coverage</button>
+        <span id="msg"></span>
+    </div>
+    <canvas id="can" width="500" height="500"></canvas>
+
+    <script>
+        const API = "http://127.0.0.1:8000/api";
+        const ctx = document.getElementById('can').getContext('2d');
+        const SCALE = 100; // 1 meter = 100 pixels
+        let isAnimating = false;
+
+        async function run() {
+            const btn = document.querySelector('button');
+            if (btn.disabled || isAnimating) return;
+            
+            btn.disabled = true;
+            isAnimating = true;
+            
+            const w = parseFloat(document.getElementById('w').value);
+            const h = parseFloat(document.getElementById('h').value);
+            const ox = parseFloat(document.getElementById('ox').value);
+            const oy = parseFloat(document.getElementById('oy').value);
+            const ow = parseFloat(document.getElementById('ow').value);
+            const oh = parseFloat(document.getElementById('oh').value);
+
+            ctx.clearRect(0,0,500,500);
+            ctx.fillStyle = "red"; 
+            ctx.fillRect(ox*SCALE, oy*SCALE, ow*SCALE, oh*SCALE);
+
+            document.getElementById('msg').innerText = "Calculating...";
+
+            try {
+                const res = await fetch(API + "/plan", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        wall_width: w, wall_height: h,
+                        obstacles: [{x: ox, y: oy, width: ow, height: oh}]
+                    })
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`API error: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                const job_id = data.job_id;
+
+                let attempts = 0;
+                const poll = setInterval(async () => {
+                    attempts++;
+                    if (attempts > 100) {
+                        clearInterval(poll);
+                        document.getElementById('msg').innerText = "Timeout";
+                        btn.disabled = false;
+                        isAnimating = false;
+                        return;
+                    }
+                    
+                    try {
+                        const res = await fetch(API + "/trajectory/" + job_id);
+                        if (!res.ok) {
+                            if (res.status === 404) {
+                                clearInterval(poll);
+                                document.getElementById('msg').innerText = "Job not found";
+                                btn.disabled = false;
+                                isAnimating = false;
+                                return;
+                            }
+                            return; // retry on other errors
+                        }
+                        
+                        const data = await res.json();
+                        
+                        if (data.status === "COMPLETED") {
+                            clearInterval(poll);
+                            document.getElementById('msg').innerText = "Done! Points: " + data.path.length;
+                            animate(data.path, () => {
+                                btn.disabled = false;
+                                isAnimating = false;
+                            });
+                        } else if (data.status === "FAILED") {
+                            clearInterval(poll);
+                            document.getElementById('msg').innerText = "Failed";
+                            btn.disabled = false;
+                            isAnimating = false;
+                        }
+                    } catch (e) {
+                        // retry on connection errors
+                        if (attempts > 20) {
+                            clearInterval(poll);
+                            document.getElementById('msg').innerText = "Connection error";
+                            btn.disabled = false;
+                            isAnimating = false;
+                        }
+                    }
+                }, 500);
+            } catch (e) {
+                document.getElementById('msg').innerText = "Error: " + e.message;
+                btn.disabled = false;
+                isAnimating = false;
+            }
+        }
+
+        function animate(points, onComplete) {
+            let i = 0;
+            ctx.lineWidth = 2;
+
+            function step() {
+                if (i >= points.length - 1) {
+                    if (onComplete) onComplete();
+                    return;
+                }
+                
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                
+                const isTravel = p2.is_spraying === false || p1.is_spraying === false;
+                
+                if (isTravel) {
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = "grey";
+                } else {
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = "blue";
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(p1.x * SCALE, p1.y * SCALE);
+                ctx.lineTo(p2.x * SCALE, p2.y * SCALE);
+                ctx.stroke();
+                
+                i++;
+                requestAnimationFrame(step);
+            }
+            step();
+        }
+    </script>
+</body>
+</html>
