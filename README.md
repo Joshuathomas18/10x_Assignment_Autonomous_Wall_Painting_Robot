@@ -38,7 +38,7 @@ To achieve a robust industrial-grade path, I iterated through three distinct alg
 ![Description of Image](images/phase3.png)
 
 
-## 3. System Architecture & "Overkill" Optimizations
+## 3. System Architecture & Optimizations
 Per the assignment requirements to include "overkill" optimizations:
 
 ### Backend: FastAPI + Async SQLAlchemy
