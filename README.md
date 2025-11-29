@@ -1,1 +1,0 @@
-# 10x_Assignment_Autonomous_Wall_Painting_Robot
