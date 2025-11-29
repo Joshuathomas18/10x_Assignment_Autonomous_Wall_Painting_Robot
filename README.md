@@ -1,7 +1,7 @@
 # Autonomous Wall-Finishing Robot Control System
 ### BE Intern Assignment | 10x Construction
 
-> **[[PASTE YOUR VIDEO LINK HERE](https://drive.google.com/file/d/1iZOiDyW6G0zAGEfhvMEsN0FBCSyTI2K0/view?usp=drive_link)]**
+> **[[Video Demo](https://drive.google.com/file/d/1iZOiDyW6G0zAGEfhvMEsN0FBCSyTI2K0/view?usp=drive_link)]**
 > *(Please watch the video for a visual demonstration of the coverage path planning and architecture)*
 
 
